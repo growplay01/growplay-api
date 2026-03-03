@@ -47,17 +47,14 @@ const pool = new Pool({
 });
 
 async function createTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      points INTEGER DEFAULT 0,
-      coins INTEGER DEFAULT 0,
-      level INTEGER DEFAULT 1,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-}
-
-createTable();
+await pool.query(`
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  points INTEGER DEFAULT 0,
+  coins INTEGER DEFAULT 0,
+  level INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`);
