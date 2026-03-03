@@ -112,7 +112,34 @@ app.get("/users", async (req, res) => {
 ========================= */
 
 const PORT = process.env.PORT || 3000;
+/* =========================
+   Adicionar pontos ao usuário
+========================= */
 
+app.post("/add-points", async (req, res) => {
+
+  const { userId, points } = req.body;
+
+  try {
+
+    const result = await pool.query(
+      "UPDATE users SET points = points + $1 WHERE id = $2 RETURNING *",
+      [points, userId]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: "Erro ao adicionar pontos"
+    });
+
+  }
+
+});
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
