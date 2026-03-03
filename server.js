@@ -3,58 +3,116 @@ const { Pool } = require("pg");
 const cors = require("cors");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Conexão com banco (Render usa variável de ambiente DATABASE_URL)
+/* =========================
+   Conexão com PostgreSQL
+========================= */
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false,
-  },
+    rejectUnauthorized: false
+  }
 });
 
-// Rota teste
+/* =========================
+   Criar tabela automaticamente
+========================= */
+
+async function createTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        points INTEGER DEFAULT 0,
+        coins INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log("Tabela users pronta");
+  } catch (error) {
+    console.error("Erro ao criar tabela:", error);
+  }
+}
+
+createTable();
+
+/* =========================
+   Rota teste
+========================= */
+
 app.get("/", (req, res) => {
   res.send("🚀 GrowPlay API está funcionando!");
 });
 
-// Criar usuário
+/* =========================
+   Criar usuário
+========================= */
+
 app.post("/users", async (req, res) => {
+
   const { name, email } = req.body;
 
   try {
+
     const result = await pool.query(
       "INSERT INTO users (name, email, points, coins, level) VALUES ($1, $2, 0, 0, 1) RETURNING *",
       [name, email]
     );
+
     res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao criar usuário" });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: "Erro ao criar usuário"
+    });
+
   }
+
 });
+
+/* =========================
+   Listar usuários
+========================= */
+
+app.get("/users", async (req, res) => {
+
+  try {
+
+    const result = await pool.query(
+      "SELECT * FROM users ORDER BY id DESC"
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: "Erro ao buscar usuários"
+    });
+
+  }
+
+});
+
+/* =========================
+   Iniciar servidor
+========================= */
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
-}); 
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
 });
-
-async function createTable() {
-await pool.query(`
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  points INTEGER DEFAULT 0,
-  coins INTEGER DEFAULT 0,
-  level INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-`);
