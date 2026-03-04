@@ -61,12 +61,40 @@ app.post("/addpoints", async (req, res) => {
 
   const { id, points } = req.body;
 
-  const result = await pool.query(
-    "UPDATE users SET points = points + $1 WHERE id = $2 RETURNING *",
-    [points, id]
-  );
+  try {
 
-  res.json(result.rows[0]);
+    const result = await pool.query(
+      "UPDATE users SET points = points + $1 WHERE id = $2 RETURNING *",
+      [points, id]
+    );
+
+    let user = result.rows[0];
+
+    let level = 1;
+
+    if (user.points >= 100) level = 2;
+    if (user.points >= 300) level = 3;
+    if (user.points >= 600) level = 4;
+    if (user.points >= 1000) level = 5;
+
+    await pool.query(
+      "UPDATE users SET level = $1 WHERE id = $2",
+      [level, id]
+    );
+
+    user.level = level;
+
+    res.json(user);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro ao adicionar pontos"
+    });
+
+  }
 
 });
 
