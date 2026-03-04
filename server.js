@@ -145,39 +145,49 @@ app.post("/addcoins", async (req, res) => {
 
 app.post("/mission", async (req, res) => {
 
-  const { id, type } = req.body;
-
-  let points = 0;
-  let coins = 0;
-
-  if (type === "daily") {
-    points = 50;
-    coins = 5;
-  }
-
-  if (type === "study") {
-    points = 100;
-    coins = 10;
-  }
-
-  if (type === "workout") {
-    points = 80;
-    coins = 8;
-  }
-
-  if (type === "focus") {
-    points = 120;
-    coins = 12;
-  }
+  const { id } = req.body;
 
   try {
 
-    const result = await pool.query(
-      "UPDATE users SET points = points + $1, coins = coins + $2 WHERE id = $3 RETURNING *",
-      [points, coins, id]
+    const userResult = await pool.query(
+      "SELECT * FROM users WHERE id = $1",
+      [id]
     );
 
-    let user = result.rows[0];
+    let user = userResult.rows[0];
+
+    const today = new Date().toISOString().slice(0,10);
+
+    let streak = user.streak || 0;
+
+    if (!user.last_mission) {
+
+      streak = 1;
+
+    } else {
+
+      const last = new Date(user.last_mission).toISOString().slice(0,10);
+
+      const diff =
+        (new Date(today) - new Date(last)) / (1000 * 60 * 60 * 24);
+
+      if (diff === 1) streak += 1;
+      else if (diff > 1) streak = 1;
+
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET points = points + 100,
+           coins = coins + 10,
+           streak = $1,
+           last_mission = CURRENT_DATE
+       WHERE id = $2
+       RETURNING *`,
+      [streak, id]
+    );
+
+    user = result.rows[0];
 
     let level = 1;
 
@@ -192,6 +202,20 @@ app.post("/mission", async (req, res) => {
     );
 
     user.level = level;
+
+    res.json(user);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro na missão"
+    });
+
+  }
+
+});
 /* CONQUISTAS */
 
 if (user.points >= 50) {
