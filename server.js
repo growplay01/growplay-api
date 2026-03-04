@@ -51,11 +51,23 @@ app.post("/users", async (req, res) => {
 
 app.get("/users", async (req, res) => {
 
-  const result = await pool.query(
-    "SELECT * FROM users ORDER BY id DESC"
-  );
+  try {
 
-  res.json(result.rows);
+    const result = await pool.query(
+      "SELECT * FROM users ORDER BY id DESC"
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro ao listar usuários"
+    });
+
+  }
 
 });
 
@@ -129,7 +141,7 @@ app.post("/addcoins", async (req, res) => {
 
 });
 
-/* MISSÃO (nova rota) */
+/* MISSÃO */
 
 app.post("/mission", async (req, res) => {
 
@@ -149,7 +161,7 @@ app.post("/mission", async (req, res) => {
     console.log(error);
 
     res.status(500).json({
-      error: "Erro na missão"
+      error: "Erro ao completar missão"
     });
 
   }
@@ -185,8 +197,5 @@ app.get("/ranking", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Servidor rodando na porta", PORT);
-});
-app.listen(PORT, () => {
-  console.log("Servidor rodando");
+  console.log("🚀 Servidor rodando na porta", PORT);
 });
