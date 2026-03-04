@@ -114,7 +114,29 @@ app.post("/addcoins", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+/* Ranking de usuários */
 
+app.get("/ranking", async (req, res) => {
+
+  try {
+
+    const result = await pool.query(
+      "SELECT id, name, points, level FROM users ORDER BY points DESC LIMIT 10"
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro ao buscar ranking"
+    });
+
+  }
+
+});
 app.listen(PORT, () => {
   console.log("Servidor rodando");
 });
