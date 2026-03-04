@@ -106,7 +106,34 @@ app.get("/users", async (req, res) => {
   }
 
 });
+/* =========================
+   Adicionar pontos
+========================= */
 
+app.post("/addpoints", async (req, res) => {
+
+  const { id, points } = req.body;
+
+  try {
+
+    const result = await pool.query(
+      "UPDATE users SET points = points + $1 WHERE id = $2 RETURNING *",
+      [points, id]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      error: "Erro ao adicionar pontos"
+    });
+
+  }
+
+});
 /* =========================
    Iniciar servidor
 ========================= */
