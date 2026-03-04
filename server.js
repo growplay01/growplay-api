@@ -7,10 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* Conexão com banco */
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
+
+/* Teste da API */
 
 app.get("/", (req, res) => {
   res.send("🚀 GrowPlay API funcionando!");
@@ -26,7 +30,7 @@ app.post("/users", async (req, res) => {
 
     const result = await pool.query(
       "INSERT INTO users (name,email) VALUES ($1,$2) RETURNING *",
-      [name,email]
+      [name, email]
     );
 
     res.json(result.rows[0]);
@@ -104,17 +108,55 @@ app.post("/addcoins", async (req, res) => {
 
   const { id, coins } = req.body;
 
-  const result = await pool.query(
-    "UPDATE users SET coins = coins + $1 WHERE id = $2 RETURNING *",
-    [coins, id]
-  );
+  try {
 
-  res.json(result.rows[0]);
+    const result = await pool.query(
+      "UPDATE users SET coins = coins + $1 WHERE id = $2 RETURNING *",
+      [coins, id]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro ao adicionar moedas"
+    });
+
+  }
 
 });
 
-const PORT = process.env.PORT || 3000;
-/* Ranking de usuários */
+/* MISSÃO (nova rota) */
+
+app.post("/mission", async (req, res) => {
+
+  const { id } = req.body;
+
+  try {
+
+    const result = await pool.query(
+      "UPDATE users SET points = points + 100, coins = coins + 10 WHERE id = $1 RETURNING *",
+      [id]
+    );
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro na missão"
+    });
+
+  }
+
+});
+
+/* Ranking */
 
 app.get("/ranking", async (req, res) => {
 
@@ -136,6 +178,14 @@ app.get("/ranking", async (req, res) => {
 
   }
 
+});
+
+/* Iniciar servidor */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Servidor rodando na porta", PORT);
 });
 app.listen(PORT, () => {
   console.log("Servidor rodando");
