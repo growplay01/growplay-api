@@ -119,7 +119,7 @@ app.post("/mission", async (req, res) => {
     if (points >= 1000) level = 5;
 
     await pool.query(
-      "UPDATE users SET level = $1 WHERE id = $2",
+      "UPDATE users SET level=$1 WHERE id=$2",
       [level, id]
     );
 
@@ -204,4 +204,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor rodando na porta", PORT);
 });
-fix mission route
