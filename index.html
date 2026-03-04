@@ -3,12 +3,23 @@
 
 <head>
 <meta charset="UTF-8">
-<title>GrowPlay Ranking</title>
+<title>GrowPlay</title>
 </head>
 
 <body>
 
-<h1>🏆 Ranking GrowPlay</h1>
+<h1>🎮 GrowPlay</h1>
+
+<h2>Criar Usuário</h2>
+
+<input id="name" placeholder="Nome">
+<input id="email" placeholder="Email">
+
+<button onclick="createUser()">Criar Conta</button>
+
+<hr>
+
+<h2>🏆 Ranking</h2>
 
 <button onclick="addPoints()">Ganhar +50 pontos</button>
 <button onclick="loadRanking()">Atualizar Ranking</button>
@@ -18,6 +29,32 @@
 <script>
 
 const API = "https://growplay-api.onrender.com"
+
+async function createUser(){
+
+const name = document.getElementById("name").value
+const email = document.getElementById("email").value
+
+await fetch(API + "/users",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+name,
+email
+})
+
+})
+
+alert("Usuário criado!")
+
+loadRanking()
+
+}
 
 async function loadRanking(){
 
