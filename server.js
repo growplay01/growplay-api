@@ -23,10 +23,9 @@ app.get("/", (req, res) => {
 /* Criar usuário */
 
 app.post("/users", async (req, res) => {
-
-  const { name, email } = req.body;
-
   try {
+
+    const { name, email } = req.body;
 
     const result = await pool.query(
       "INSERT INTO users (name,email) VALUES ($1,$2) RETURNING *",
@@ -44,13 +43,11 @@ app.post("/users", async (req, res) => {
     });
 
   }
-
 });
 
 /* Listar usuários */
 
 app.get("/users", async (req, res) => {
-
   try {
 
     const result = await pool.query(
@@ -68,7 +65,6 @@ app.get("/users", async (req, res) => {
     });
 
   }
-
 });
 
 /* MISSÃO */
@@ -85,25 +81,25 @@ app.post("/mission", async (req, res) => {
       });
     }
 
-    const result = await pool.query(
+    const userResult = await pool.query(
       "SELECT * FROM users WHERE id=$1",
       [id]
     );
 
-    if (result.rows.length === 0) {
+    if (userResult.rows.length === 0) {
       return res.status(404).json({
         error: "Usuário não encontrado"
       });
     }
 
-    const user = result.rows[0];
+    let user = userResult.rows[0];
 
     const points = user.points + 50;
     const coins = user.coins + 5;
     const streak = (user.streak || 0) + 1;
 
     await pool.query(
-      `UPDATE users 
+      `UPDATE users
        SET points=$1, coins=$2, streak=$3, last_mission=NOW()
        WHERE id=$4`,
       [points, coins, streak, id]
