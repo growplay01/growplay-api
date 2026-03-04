@@ -141,33 +141,76 @@ app.post("/addcoins", async (req, res) => {
 
 });
 
-/* MISSÃO */
+/* MISSÕES */
 
 app.post("/mission", async (req, res) => {
 
-  const { id } = req.body;
+  const { id, type } = req.body;
+
+  let points = 0;
+  let coins = 0;
+
+  if (type === "daily") {
+    points = 50;
+    coins = 5;
+  }
+
+  if (type === "study") {
+    points = 100;
+    coins = 10;
+  }
+
+  if (type === "workout") {
+    points = 80;
+    coins = 8;
+  }
+
+  if (type === "focus") {
+    points = 120;
+    coins = 12;
+  }
 
   try {
 
     const result = await pool.query(
-      "UPDATE users SET points = points + 100, coins = coins + 10 WHERE id = $1 RETURNING *",
-      [id]
+      "UPDATE users SET points = points + $1, coins = coins + $2 WHERE id = $3 RETURNING *",
+      [points, coins, id]
     );
 
-    res.json(result.rows[0]);
+    let user = result.rows[0];
+
+    let level = 1;
+
+    if (user.points >= 100) level = 2;
+    if (user.points >= 300) level = 3;
+    if (user.points >= 600) level = 4;
+    if (user.points >= 1000) level = 5;
+
+    await pool.query(
+      "UPDATE users SET level = $1 WHERE id = $2",
+      [level, id]
+    );
+
+    user.level = level;
+
+    res.json({
+      mission:type,
+      gained_points:points,
+      gained_coins:coins,
+      user:user
+    });
 
   } catch (error) {
 
     console.log(error);
 
     res.status(500).json({
-      error: "Erro ao completar missão"
+      error: "Erro na missão"
     });
 
   }
 
 });
-
 /* Ranking */
 
 app.get("/ranking", async (req, res) => {
