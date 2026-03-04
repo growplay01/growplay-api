@@ -192,7 +192,35 @@ app.post("/mission", async (req, res) => {
     );
 
     user.level = level;
+/* CONQUISTAS */
 
+if (user.points >= 50) {
+  await pool.query(
+    "INSERT INTO achievements (user_id, title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+    [id, "Primeira Missão"]
+  );
+}
+
+if (user.points >= 200) {
+  await pool.query(
+    "INSERT INTO achievements (user_id, title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+    [id, "Estudante"]
+  );
+}
+
+if (user.points >= 500) {
+  await pool.query(
+    "INSERT INTO achievements (user_id, title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+    [id, "Focado"]
+  );
+}
+
+if (user.points >= 1000) {
+  await pool.query(
+    "INSERT INTO achievements (user_id, title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+    [id, "Mestre"]
+  );
+}
     res.json({
       mission:type,
       gained_points:points,
