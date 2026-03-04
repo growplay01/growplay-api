@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+<meta charset="UTF-8">
 <title>GrowPlay Ranking</title>
 </head>
 
@@ -8,35 +10,61 @@
 
 <h1>🏆 Ranking GrowPlay</h1>
 
-<button onclick="carregar()">Atualizar Ranking</button>
+<button onclick="addPoints()">Ganhar +50 pontos</button>
+<button onclick="loadRanking()">Atualizar Ranking</button>
 
 <ul id="ranking"></ul>
 
 <script>
 
-async function carregar(){
+const API = "https://growplay-api.onrender.com"
 
-const resposta = await fetch("https://growplay-api.onrender.com/ranking");
+async function loadRanking(){
 
-const dados = await resposta.json();
+const res = await fetch(API + "/ranking")
+const data = await res.json()
 
-const lista = document.getElementById("ranking");
+const ranking = document.getElementById("ranking")
 
-lista.innerHTML = "";
+ranking.innerHTML = ""
 
-dados.forEach(user => {
+data.forEach(user => {
 
-const item = document.createElement("li");
+const li = document.createElement("li")
 
-item.innerText = user.name + " - " + user.points + " pontos";
+li.innerText = user.name + " - " + user.points + " pontos"
 
-lista.appendChild(item);
+ranking.appendChild(li)
 
-});
+})
 
 }
+
+async function addPoints(){
+
+await fetch(API + "/addpoints",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+id:1,
+points:50
+})
+
+})
+
+loadRanking()
+
+}
+
+loadRanking()
 
 </script>
 
 </body>
+
 </html>
