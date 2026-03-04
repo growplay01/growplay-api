@@ -75,49 +75,56 @@ app.get("/users", async (req, res) => {
 
 app.post("/mission", async (req, res) => {
 
-  const { id } = req.body;
-
   try {
 
-    const userResult = await pool.query(
-      "SELECT * FROM users WHERE id = $1",
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        error: "ID do usuário é obrigatório"
+      });
+    }
+
+    const user = await pool.query(
+      "SELECT * FROM users WHERE id=$1",
       [id]
     );
 
-    let user = userResult.rows[0];
-
-    const today = new Date().toISOString().slice(0,10);
-
-    let streak = user.streak || 0;
-
-    if (!user.last_mission) {
-
-      streak = 1;
-
-    } else {
-
-      const last = new Date(user.last_mission).toISOString().slice(0,10);
-
-      const diff =
-        (new Date(today) - new Date(last)) / (1000 * 60 * 60 * 24);
-
-      if (diff === 1) streak += 1;
-      else if (diff > 1) streak = 1;
-
+    if (user.rows.length === 0) {
+      return res.status(404).json({
+        error: "Usuário não encontrado"
+      });
     }
 
-    const result = await pool.query(
-      `UPDATE users
-       SET points = points + 100,
-           coins = coins + 10,
-           streak = $1,
-           last_mission = CURRENT_DATE
-       WHERE id = $2
-       RETURNING *`,
-      [streak, id]
+    const points = user.rows[0].points + 50;
+    const coins = user.rows[0].coins + 5;
+    const streak = (user.rows[0].streak || 0) + 1;
+
+    await pool.query(
+      `UPDATE users 
+       SET points=$1, coins=$2, streak=$3, last_mission=NOW()
+       WHERE id=$4`,
+      [points, coins, streak, id]
     );
 
-    user = result.rows[0];
+    res.json({
+      message: "Missão concluída",
+      points,
+      coins,
+      streak
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro na missão"
+    });
+
+  }
+
+});
 
     /* LEVEL */
 
