@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GrowPlay Ranking</title>
+</head>
+
+<body>
+
+<h1>🏆 Ranking GrowPlay</h1>
+
+<button onclick="carregar()">Atualizar Ranking</button>
+
+<ul id="ranking"></ul>
+
+<script>
+
+async function carregar(){
+
+const resposta = await fetch("https://growplay-api.onrender.com/ranking");
+
+const dados = await resposta.json();
+
+const lista = document.getElementById("ranking");
+
+lista.innerHTML = "";
+
+dados.forEach(user => {
+
+const item = document.createElement("li");
+
+item.innerText = user.name + " - " + user.points + " pontos";
+
+lista.appendChild(item);
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
