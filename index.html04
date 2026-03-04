@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GrowPlay</title>
+</head>
+
+<body>
+
+<h1>🚀 GrowPlay</h1>
+
+<h2>Ranking de Jogadores</h2>
+
+<div id="ranking"></div>
+
+<script>
+
+fetch("https://growplay-api.onrender.com/ranking")
+.then(res => res.json())
+.then(data => {
+
+let html = "";
+
+data.forEach(user => {
+
+html += user.name + " - " + user.points + " pontos <br>";
+
+});
+
+document.getElementById("ranking").innerHTML = html;
+
+});
+
+</script>
+
+</body>
+</html>
