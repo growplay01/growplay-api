@@ -11,24 +11,34 @@ app.use(express.json());
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
-/* Teste da API */
+/* TESTE DA API */
 
 app.get("/", (req, res) => {
   res.send("🚀 GrowPlay API funcionando!");
 });
 
-/* Criar usuário */
+/* CRIAR USUÁRIO */
 
 app.post("/users", async (req, res) => {
   try {
 
     const { name, email } = req.body;
 
+    if (!name || !email) {
+      return res.status(400).json({
+        error: "Nome e email são obrigatórios"
+      });
+    }
+
     const result = await pool.query(
-      "INSERT INTO users (name,email) VALUES ($1,$2) RETURNING *",
+      `INSERT INTO users (name,email,points,coins,level,streak)
+       VALUES ($1,$2,0,0,1,0)
+       RETURNING *`,
       [name, email]
     );
 
@@ -45,7 +55,7 @@ app.post("/users", async (req, res) => {
   }
 });
 
-/* Listar usuários */
+/* LISTAR USUÁRIOS */
 
 app.get("/users", async (req, res) => {
   try {
@@ -92,7 +102,7 @@ app.post("/mission", async (req, res) => {
       });
     }
 
-    let user = userResult.rows[0];
+    const user = userResult.rows[0];
 
     const points = user.points + 50;
     const coins = user.coins + 5;
@@ -123,28 +133,36 @@ app.post("/mission", async (req, res) => {
 
     if (points >= 50) {
       await pool.query(
-        "INSERT INTO achievements (user_id,title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+        `INSERT INTO achievements (user_id,title)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
         [id,"Primeira Missão"]
       );
     }
 
     if (points >= 200) {
       await pool.query(
-        "INSERT INTO achievements (user_id,title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+        `INSERT INTO achievements (user_id,title)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
         [id,"Estudante"]
       );
     }
 
     if (points >= 500) {
       await pool.query(
-        "INSERT INTO achievements (user_id,title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+        `INSERT INTO achievements (user_id,title)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
         [id,"Focado"]
       );
     }
 
     if (points >= 1000) {
       await pool.query(
-        "INSERT INTO achievements (user_id,title) VALUES ($1,$2) ON CONFLICT DO NOTHING",
+        `INSERT INTO achievements (user_id,title)
+         VALUES ($1,$2)
+         ON CONFLICT DO NOTHING`,
         [id,"Mestre"]
       );
     }
@@ -169,7 +187,7 @@ app.post("/mission", async (req, res) => {
 
 });
 
-/* Ranking */
+/* RANKING */
 
 app.get("/ranking", async (req, res) => {
 
@@ -193,10 +211,37 @@ app.get("/ranking", async (req, res) => {
 
 });
 
-/* Iniciar servidor */
+/* CONQUISTAS DO USUÁRIO */
+
+app.get("/achievements/:id", async (req, res) => {
+
+  try {
+
+    const { id } = req.params;
+
+    const result = await pool.query(
+      "SELECT * FROM achievements WHERE user_id=$1",
+      [id]
+    );
+
+    res.json(result.rows);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      error: "Erro ao buscar conquistas"
+    });
+
+  }
+
+});
+
+/* INICIAR SERVIDOR */
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Servidor rodando na porta", PORT);
+  console.log("🚀 Servidor rodando na porta", PORT);
 });
